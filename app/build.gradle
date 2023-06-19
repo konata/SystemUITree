@@ -1,0 +1,63 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.android.systemui'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.android.systemui"
+        minSdk 33
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    sourceSets {
+        main {
+            def src = Files.list(Paths.get("${project.rootDir}/externals")).filter { Files.isDirectory(it) }.toArray()
+            java.srcDirs = src.toList()
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.slice:slice-core:1.0.0'
+    implementation 'androidx.slice:slice-builders-ktx:1.0.0-alpha08'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+}
+
+task link() {
+    doLast {
+        def packages = "animation monet plugin/ExamplePlugin plugin/bcsmartspace plugin plugin_core shared ./".split(/\s+/).collect { """../base/packages/SystemUI/$it/src""" }
+        def debug = "../base/packages/SystemUI/src-debug"
+        def shell = "../base/libs/WindowManager/Shell/src"
+        (packages + debug + shell).collect { [it, it.replaceAll(/[\.\/]+/, "@").replaceAll(/^@|@$/, "")] }.forEach { pair ->
+            def to = Paths.get("${project.rootDir}/externals/${pair[1]}").toAbsolutePath()
+            def from = Paths.get("${project.rootDir}/${pair[0]}").toAbsolutePath()
+            println("from: ${from} to:${to}")
+            Files.createSymbolicLink(to, from)
+        }
+    }
+}
