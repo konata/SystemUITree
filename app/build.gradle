@@ -47,6 +47,7 @@ dependencies {
     implementation 'androidx.slice:slice-builders:1.1.0-alpha02'
     implementation 'androidx.slice:slice-core:1.1.0-alpha02'
     implementation 'androidx.slice:slice-view:1.1.0-alpha02'
+    implementation 'androidx.preference:preference:1.2.0'
 }
 
 task link() {
