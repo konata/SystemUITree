@@ -55,11 +55,30 @@ task link() {
         def packages = "animation monet plugin/ExamplePlugin plugin/bcsmartspace plugin plugin_core shared ./".split(/\s+/).collect { """../base/packages/SystemUI/$it/src""" }
         def debug = "../base/packages/SystemUI/src-debug"
         def shell = "../base/libs/WindowManager/Shell/src"
+
         (packages + debug + shell).collect { [it, it.replaceAll(/[\.\/]+/, "@").replaceAll(/^@|@$/, "")] }.forEach { pair ->
             def to = Paths.get("${project.rootDir}/externals/${pair[1]}").toAbsolutePath()
             def from = Paths.get("${project.rootDir}/${pair[0]}").toAbsolutePath()
             println("from: ${from} to:${to}")
-            Files.createSymbolicLink(to, from)
+            try {
+                Files.createSymbolicLink(to, from)
+            } catch (e) {
+            }
+        }
+
+        def settingsLibBase = new File("${project.rootDir}/../base/packages/SettingsLib")
+        (settingsLibBase.listFiles().findAll { dir -> dir.isDirectory() && new File(dir, "src").isDirectory() }
+                + settingsLibBase).forEach { dir ->
+            def from = new File(dir, "src").toPath()
+            def to = Paths.get("${project.rootDir}/externals/${dir.path.replaceAll(/^.*\.\.\//, "").replaceAll("/", "@") + "@src"}")
+            println("settings from: ${from} to:${to}")
+            try {
+                Files.createSymbolicLink(to, from)
+            } catch (e) {
+            }
         }
     }
 }
+
+
+
